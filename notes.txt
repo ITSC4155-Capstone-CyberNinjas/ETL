@@ -1,0 +1,52 @@
+(Extract) Transform Load
+
+All of the data is stored in Google Drive. The goal is to leverage the Google Drive API
+to incrementally download the files in small batches due to resource limitations. 
+So essentially, download one file from an API call, unzip, perform transformations,
+store in structured database, and delete raw files (to save storage). 
+
+The entire ETL process should be as *automated as possible* so that it can be repeated on 
+different devices. Ideally, the back-end will not be running off of my thinkpad (lol). 
+But while developing I will need it to. Then could just repeat process on a workstation
+of sorts for hosting. 
+
+For the extract portion of this process, we mainly need to setup the API authentication
+and request functions so that it can orchestrated from a high-level driver script. 
+
+References:
+    - Python Quickstart: https://developers.google.com/drive/api/quickstart/python
+    - Auth&Auth: https://developers.google.com/workspace/guides/auth-overview 
+
+Auth setup notes:
+    - There is User or App authentication. For this, we will want to leverage App Authentication 
+    which will use Credentials
+    - Will likely need to reach out to Rick Hudson to authorize app 
+    - "such as a specific user's Google Drive files. This data type is usually accessed using an OAuth 2 client ID or service account."
+
+
+Looks like Google Drive API can only be used with a Google Cloud subscription :( 
+
+"Extract" may need to be abandoned.
+
+____________________________________________________________________________________________________________
+Extract will simply be unpacking files downloaded from the Google Drive manual download
+
+Unpacking files:
+	- two types: 
+		Student_*.zip (directory structure as follows)
+			- Student wifi test data
+				- wireless_*.log.tar.gz (1)
+				- wireless_*.log.tar.gz (2)
+				.
+				.
+				.
+				- wireless_*.log.tar.gz (n)
+			
+		wireless_*.tar.gz (directory structure as follows)
+			- var
+				- log
+					- remote
+						- wireless-encoded
+							- wireless_*.log
+							
+
