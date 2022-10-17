@@ -1,3 +1,23 @@
+# extract.py
+
+"""
+	This script extracts all of the .zip and .tar.gz files downloaded from the google drive
+	containing all of the WiFi logs. 
+
+	The log data is all compressed in a .tar.gz file. When downloading from google drive, 
+	google will automatically zip files less than 2gb with other files before downloaded.
+	Files that are larger (greather than 2gb) will just be downloaded as is (.tar.gz). 
+	So our actual directory will contain a mix of both .zip (containing .tar.gz) and .tar.gz.
+	The script handles this accordingly.
+
+	As the files are decompressed they are written to a new location and then the original
+	compressed file (either .zip or .tar.gz) will be deleted. 
+
+	The script utilizes the multiprocessing module for parallelization. Since there is so
+	much data, the process will take time. Parallelizing the data will speed up the process
+	depending on the number of workers assigned.
+"""
+
 import os
 import time 
 import logging
