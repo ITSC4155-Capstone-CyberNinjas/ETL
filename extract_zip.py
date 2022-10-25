@@ -27,24 +27,10 @@ from tarfile import TarFile
 from multiprocessing import Pool
 
 DATA_PATH = Path('/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/drive_zip')
-DEST_PATH = Path('/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/dataset/raw/wifi')
+DEST_PATH = Path('/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/tar_zip')
 LOG_PATH = Path('/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/dataset/logs')
 
-logging.basicConfig(filename= LOG_PATH / Path('extraction_log.log'), encoding='utf-8', level=logging.INFO)
-
-def unpack_tar(file):
-	"""
-		Given a file object, open with TarFile and extract to destination
-	"""
-	with TarFile(fileobj = file) as tf:
-		tf.extract(tf.getmembers()[0], path = DEST_PATH)
-
-def unpack_tar_from_path(tar_path: Path):
-	"""
-		Given a file path, open with TarFile and extract to destination
-	"""
-	with TarFile(DATA_PATH / tar_path) as tf:
-		tf.extract(tf.getmembers()[0], path = DEST_PATH)
+logging.basicConfig(filename= LOG_PATH / Path('extraction_log3.log'), encoding='utf-8', level=logging.INFO)
 
 def unpack(f: str):
 	"""
@@ -59,24 +45,13 @@ def unpack(f: str):
 				unpack the tar file and write to disk
 
 	"""
-	logging.info(f'{f} is being extracted')
-
 	if "Student" in f:	# All zip files in the directory start with 'Student_'
 		with ZipFile(DATA_PATH / Path(f), 'r') as zip_obj:
-			for zf in zip_obj.namelist():
-				with zip_obj.open(zf) as myfile:
-					unpack_tar(myfile)
-
-		logging.info(f'{f} is being deleted')
+			zip_obj.extractall(DEST_PATH)
+			logging.info(f'{f} is being extracted')
 
 		os.remove(DATA_PATH / Path(f)) 	#delete file once extracted
-	else:	# if not a zip, only other option is .tar.gz
-		
-		unpack_tar_from_path(Path(f))
-
 		logging.info(f'{f} is being deleted')
-
-		os.remove(DATA_PATH / Path(f))	#delete file once extracted
 
 
 if __name__  == "__main__":
