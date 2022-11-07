@@ -1,4 +1,15 @@
 # transform.py
+
+"""
+This script performs transformation of the raw wifi logs into a tabular and structured format.
+The transformation is largely an aggregation of counts of association success logs that is grouped
+by building. Outliers are also removed based on z-score. Key packages used are pandas, regex, and
+multiprocessing. Depending on the size of the file, the transformation typically takes from 20 seconds 
+to 2 minutes to complete a file. This script will output each file as a .csv. Database ingestion
+will be hangled by another script.
+"""
+
+
 import re
 import os
 import logging
