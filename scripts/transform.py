@@ -184,19 +184,14 @@ class WifiLogTransformer:
 
         # Format columns 
         grouped_df['count'] = grouped_df['timestamp']
-        grouped_df['timestamp'] = grouped_df['hour'].apply( lambda x: datetime(
-                        													year = self.date.year, 
-				        													month = self.date.month, 
-				        													day = self.date.day, 
-				        													hour = x
-				        												))
+        grouped_df['timestamp'] = grouped_df['hour'].apply( lambda x: datetime(year = self.date.year, month = self.date.month, day = self.date.day, hour = x))
         grouped_df = grouped_df.drop(columns=['log', 'hour'])
         grouped_df = grouped_df.reindex(columns = ['timestamp', 'count', 'building'])
 
         self.logs_df = grouped_df 
 
 
-#### Driver
+#### TODO: Driver 
 
 file_path = "/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/dataset/raw/wifi/var/log/remote/wireless-encoded/wireless_09-24-2021.log"
 date_str = file_path[-14:-4]
