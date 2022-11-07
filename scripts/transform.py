@@ -261,7 +261,7 @@ if __name__  == "__main__":
 
     logging.info(f'Files to be transformed: {files}')
 
-    pool = Pool()
+    pool = Pool(2)
     pool.map(execute_transformer, files)
     pool.close()
 
