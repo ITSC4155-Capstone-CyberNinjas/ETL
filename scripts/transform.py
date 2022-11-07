@@ -189,9 +189,9 @@ class WifiLogTransformer:
         self.logs_df = grouped_df 
 
 
-#### TODO: Driver 
-
-
+############################################################
+#####                 Driver c:                        #####
+############################################################
 
 if __name__  == "__main__":
 
@@ -216,17 +216,22 @@ if __name__  == "__main__":
         
         # initialize and execute transformer
         try:
-            transformer = WifiLogTransformer(file_path, curr_date)
             logging.info(f'Initialzied transformer for: {file_path}')
-            transformer.read_and_filter_log()
+            transformer = WifiLogTransformer(file_path, curr_date)
+
             logging.info(f'Read data for: {file_path}')
-            transformer.clean_log()
+            transformer.read_and_filter_log()
+
             logging.info(f'Clean data for: {file_path}')
-            transformer.aggregate_data()
+            transformer.clean_log()
+
             logging.info(f'Aggregating data for: {file_path}')
+            transformer.aggregate_data()
+
         except:
             logging.error(f'FAILED transformation of file: {file_path}')
             logging.exception('')
+            
             return
 
         # write file to disk
