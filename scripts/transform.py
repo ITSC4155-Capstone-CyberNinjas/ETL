@@ -1,10 +1,14 @@
 # transform.py
 import re
 import os
+import logging
+import time  
 import pandas as pd
 import numpy as np
 from pathlib import Path
 from datetime import datetime, date
+from multiprocessing import Pool
+
 
 class WifiLogTransformer:
     
@@ -43,37 +47,31 @@ class WifiLogTransformer:
                                   [{datetime n}, {log contents n}] ]
 
         """
-    
-        month_dict = {
-            'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6,
-            'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12
-        }
 
-        def format_timestamp( timestamp: str, year: int ):
+        def format_timestamp( timestamp: str ):
             """
             Given a timestamp from a log record, parse the
             string and create datetime object
 
             Parameters:
                 timestamp (str): Raw string representation of timestamp from the log record
-                year (int): year value from log file name (year is not included in time stamp)
 
             Returns:
                 datetime (datetime.datetime): Python datetime object 
             """
 
             dt = timestamp.split(' ')
-            time = dt[2].split(':')
+            time = dt[-1].split(':')
 
             return datetime(
-                year = year,
-                month = month_dict[ dt[0] ],
-                day = int( dt[1] ),
+                year = self.date.year,
+                month = self.date.month,
+                day = self.date.day,
                 hour = int( time[0] ),
                 minute = int( time[1] ),
                 second = int( time[2] )
             )
-
+            
 
         logs_array = []        
 
@@ -81,7 +79,7 @@ class WifiLogTransformer:
             for line in file:
                 for code in logs_of_interest:
                     if code in line:
-                        timestamp = format_timestamp( line[:15], self.date.year )
+                        timestamp = format_timestamp( line[:15] )
                         log = line[16:-1] #remove newline escape
                         logs_array.append( [timestamp, log] ) 
                         break 
@@ -193,18 +191,64 @@ class WifiLogTransformer:
 
 #### TODO: Driver 
 
-file_path = "/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/dataset/raw/wifi/var/log/remote/wireless-encoded/wireless_09-24-2021.log"
-date_str = file_path[-14:-4]
-date_array = [int(x) for x in date_str.split('-')]
-curr_date = date(date_array[2], date_array[0], date_array[1])
 
-transformer = WifiLogTransformer(file_path, curr_date)
 
-print('reading')
-transformer.read_and_filter_log()
-print('cleaning')
-transformer.clean_log()
-print('aggregating')
-transformer.aggregate_data()
-print('writing')
-transformer.logs_df.to_csv(transformer.file_name + '.csv', index=False)
+if __name__  == "__main__":
+
+    DATA_PATH = Path("/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/dataset/raw/wifi/var/log/remote/wireless-encoded")
+    DEST_PATH = Path("/home/calvinhathcock/Documents/College/UNCC/Fall 2022/ITSC 4155/Project/transformed_data")
+    LOG_PATH = Path("/home/calvinhathcock/Documents/College/UNCC/Fall 2022/ITSC 4155/Project/transformation_logs")
+    
+    logging.basicConfig(filename= LOG_PATH / Path('transformation.log'), encoding='utf-8', level=logging.INFO)
+
+
+    def execute_transformer(file_path):
+
+        logging.info(f'BEGINNING transformation of file: {file_path}')
+
+        # append file to path
+        file = DATA_PATH / file_path
+
+        # format date
+        date_str = str(file_path[-14:-4])
+        date_array = [int(x) for x in date_str.split('-')]
+        curr_date = date(date_array[2], date_array[0], date_array[1])
+        
+        # initialize and execute transformer
+        try:
+            transformer = WifiLogTransformer(file_path, curr_date)
+            logging.info(f'Initialzied transformer for: {file_path}')
+            transformer.read_and_filter_log()
+            logging.info(f'Read data for: {file_path}')
+            transformer.clean_log()
+            logging.info(f'Clean data for: {file_path}')
+            transformer.aggregate_data()
+            logging.info(f'Aggregating data for: {file_path}')
+        except:
+            logging.error(f'FAILED transformation of file: {file_path}')
+            logging.exception('')
+            return
+
+        # write file to disk
+        transformer.logs_df.to_csv( DEST_PATH / Path("counts_" + transformer.file_name[:-4] + ".csv"), index=False)
+
+        logging.info(f'FINISHED transformation of file: {file_path}')
+
+    
+    starttime = time.time()
+
+    logging.info(f'Beginning transformation process at {starttime}')
+
+    os.chdir(DATA_PATH)
+
+    files = os.listdir(DATA_PATH)
+
+    logging.info(f'Files to be transformed: {files}')
+
+    pool = Pool()
+    pool.map(execute_transformer, files)
+    pool.close()
+
+    endtime = time.time()
+
+    logging.info(f'Finishing transformation process at {endtime}')
