@@ -16,7 +16,7 @@ class WifiLogTransformer:
         self.logs_array = None
         
         
-    def read_and_filter_log(self, logs_of_interest: list = ['<501100> <1918>'] ):
+    def read_and_filter_log(self, logs_of_interest: list = ['<501100>'] ):
         """ 
         Given a raw log file path, read file and filter for logs of interest
         based on the codes:
@@ -34,7 +34,7 @@ class WifiLogTransformer:
             logs_of_interest (list): List of strings that represent the different codes in the log file. 
                                      Will be used to check for matches in each line. 
 
-        Returns:
+        Assigns:
             log_array (List): 2d list of logs with timestamp separated into its own column
 
                                 [ [{datetime 1}, {log contents 1}],
@@ -75,9 +75,7 @@ class WifiLogTransformer:
             )
 
 
-        logs_array = []
-        #year = int( str(log_file_path)[-8:-4] ) #extract year from file name
-        
+        logs_array = []        
 
         with open(self.file_path, 'r') as file:
             for line in file:
@@ -156,14 +154,14 @@ class WifiLogTransformer:
 
 
     def aggregate_data(self):
-    	"""
-		Format the log dataframe so that it can be aggregated
-    	"""
+        """
+        Format the log dataframe so that it can be aggregated
+        """
 
         def get_building_codes(log: str):
-        	"""
-        	Given a log, extract the building code using regex 
-        	"""
+            """
+            Given a log, extract the building code using regex 
+            """
             pattern1 = re.compile('EXT-[a-zA-Z]{4}')
             pattern2 = re.compile(r'([0-9a-f]{2}(?::[0-9a-f]{2}){5}-[a-zA-Z]{4})', re.IGNORECASE)
 
@@ -186,10 +184,32 @@ class WifiLogTransformer:
 
         # Format columns 
         grouped_df['count'] = grouped_df['timestamp']
-        grouped_df['timestamp'] = grouped_df['hour'].apply( lambda x: datetime(year = self.date.year, month = self.date.month, day = self.date.day, hour = x))
+        grouped_df['timestamp'] = grouped_df['hour'].apply( lambda x: datetime(
+                        													year = self.date.year, 
+				        													month = self.date.month, 
+				        													day = self.date.day, 
+				        													hour = x
+				        												))
         grouped_df = grouped_df.drop(columns=['log', 'hour'])
         grouped_df = grouped_df.reindex(columns = ['timestamp', 'count', 'building'])
 
         self.logs_df = grouped_df 
 
 
+#### Driver
+
+file_path = "/media/calvinhathcock/Secondary SSD/ITSC_4155_Capstone/dataset/raw/wifi/var/log/remote/wireless-encoded/wireless_09-24-2021.log"
+date_str = file_path[-14:-4]
+date_array = [int(x) for x in date_str.split('-')]
+curr_date = date(date_array[2], date_array[0], date_array[1])
+
+transformer = WifiLogTransformer(file_path, curr_date)
+
+print('reading')
+transformer.read_and_filter_log()
+print('cleaning')
+transformer.clean_log()
+print('aggregating')
+transformer.aggregate_data()
+print('writing')
+transformer.logs_df.to_csv(transformer.file_name + '.csv', index=False)
