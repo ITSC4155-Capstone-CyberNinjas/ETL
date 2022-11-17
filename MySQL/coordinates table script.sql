@@ -1,4 +1,4 @@
-SET GLOBAL local_infile=1;
+SET GLOBAL local_infile = 1;
 
 CREATE DATABASE IF NOT EXISTS `CyberNinjas`;
 USE `CyberNinjas`;
